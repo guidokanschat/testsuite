@@ -1,0 +1,40 @@
+#!/bin/zsh -l
+set -u
+
+export TMPDIR=/srv/scratch/tmp
+export LC_ALL="en_GB.UTF-8"
+MAKEOPTS="-j8"
+REPOSITORY=dealii
+BRANCH=master
+
+dir=`pwd`
+
+echo Starting script at `date`
+
+pushd $REPOSITORY > /dev/null
+
+echo updating in `pwd`
+
+git remote update
+if git diff origin/$BRANCH --quiet; then
+  echo no changes, bailing out
+  exit
+fi
+git checkout $BRANCH
+git reset --hard origin/$BRANCH
+
+popd > /dev/null
+
+for file in regression_tests/*; do
+  builddir=$(mktemp -d "$TMPDIR/build-XXXXXXXX")
+
+  ctest -DCONFIG_FILE="${dir}/${file}" \
+        -DCTEST_BINARY_DIRECTORY="${builddir}" \
+        -DMAKEOPTS="${MAKEOPTS}" \
+        -DTRACK="Continuous" \
+        -S "${REPOSITORY}"/tests/run_testsuite.cmake \
+        ${MAKEOPTS} \
+        --schedule-random
+
+  rm -rf "${builddir}"
+done
