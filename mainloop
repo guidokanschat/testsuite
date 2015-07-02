@@ -1,0 +1,15 @@
+/bin/bash
+set -e
+set -u
+
+while (true); do
+  echo
+  echo
+  echo wakeup
+  touch ._active_ # Just an indicator, not a lock
+  ./run_testsuite
+  rm -f ._active_
+  echo entering sleep state
+  sleep 600
+done
+
