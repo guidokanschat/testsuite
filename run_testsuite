@@ -4,7 +4,7 @@ set -u
 export LC_ALL="en_GB.UTF-8"
 
 dir=`pwd`
-host=`hostname`
+host=`hostname -s`
 
 if [ -r config/$host ]; then
     source config/$host
@@ -12,7 +12,7 @@ else
     echo "No configuration for host '$host' in config"
 fi
 
-echo Starting script at `date`
+echo Starting script on $host at `date`
 
 pushd $REPOSITORY > /dev/null
 
@@ -29,10 +29,10 @@ git reset --hard origin/$BRANCH
 
 popd > /dev/null
 
-for file in regression_tests/*; do
+for file in regression_tests/$host/*.config ; do
   builddir=$(mktemp -d "$TMPDIR/build-XXXXXXXX")
 
-  ctest -DCONFIG_FILE="${dir}/${host}/${file}" \
+  ctest -DCONFIG_FILE="${dir}/${file}" \
         -DCTEST_BINARY_DIRECTORY="${builddir}" \
         -DMAKEOPTS="${MAKEOPTS}" \
         -DTRACK="${TRACK}" \
