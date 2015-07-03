@@ -1,13 +1,16 @@
-#!/bin/zsh -l
+#!/bin/bash -l
 set -u
 
-export TMPDIR=/srv/scratch/tmp
 export LC_ALL="en_GB.UTF-8"
-MAKEOPTS="-j8"
-REPOSITORY=dealii
-BRANCH=master
 
 dir=`pwd`
+host=`hostname`
+
+if [ -r config/$host ]; then
+    source config/$host
+else
+    echo "No configuration for host '$host' in config"
+fi
 
 echo Starting script at `date`
 
@@ -18,8 +21,9 @@ echo updating in `pwd`
 git remote update
 if git diff origin/$BRANCH --quiet; then
   echo no changes, bailing out
-  exit
+#  exit
 fi
+
 git checkout $BRANCH
 git reset --hard origin/$BRANCH
 
@@ -28,10 +32,10 @@ popd > /dev/null
 for file in regression_tests/*; do
   builddir=$(mktemp -d "$TMPDIR/build-XXXXXXXX")
 
-  ctest -DCONFIG_FILE="${dir}/${file}" \
+  ctest -DCONFIG_FILE="${dir}/${host}/${file}" \
         -DCTEST_BINARY_DIRECTORY="${builddir}" \
         -DMAKEOPTS="${MAKEOPTS}" \
-        -DTRACK="Continuous" \
+        -DTRACK="${TRACK}" \
         -S "${REPOSITORY}"/tests/run_testsuite.cmake \
         ${MAKEOPTS} \
         --schedule-random

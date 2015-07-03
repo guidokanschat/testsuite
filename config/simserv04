@@ -1,0 +1,5 @@
+export TMPDIR=/srv/scratch/tmp
+export MAKEOPTS="-j8"
+export REPOSITORY=dealii
+export BRANCH=master
+export TRACK=Continuous
